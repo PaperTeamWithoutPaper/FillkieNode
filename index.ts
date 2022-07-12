@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import process from 'process';
 import dotenv from 'dotenv';
+import compression from 'compression';
+import helmet from 'helmet';
 import routes from './routes';
 
 /**
@@ -17,6 +19,8 @@ async function startApp(): Promise<void> {
 
     const app = express();
 
+    app.use(compression());
+    app.use(helmet());
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
     app.use((_req, res, next) => {
