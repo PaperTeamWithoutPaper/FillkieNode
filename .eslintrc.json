@@ -1,16 +1,39 @@
 {
-    "plugins": ["prettier"],
     "env": {
         "browser": true,
-        "commonjs": true,
         "es2021": true
     },
-    "extends": ["google", "eslint:recommended", "plugin:prettier/recommended"],
+    "extends": [
+        "google",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    ],
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaVersion": "latest"
+        "project": "./tsconfig.json",
+        "ecmaVersion": 2021,
+        "sourceType": "module"
     },
-    "ignorePatterns": ["node_modules/"],
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "rules": {
-        "prettier/prettier": "error"
-    }
+        "no-unused-vars": "off",
+        "no-use-before-define": "off",
+        "max-len": [
+            "warn",
+            {
+                "code": 120,
+                "tabWidth": 4
+            }
+        ],
+        "new-cap": "off",
+        "indent": [
+            "error",
+            4
+        ]
+    },
+    "ignorePatterns": ["dist/", "node_modules/"]
 }
