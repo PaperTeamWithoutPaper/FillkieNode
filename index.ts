@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import compression from 'compression';
 import helmet from 'helmet';
 import routes from './routes';
+import errorHandler from './middlewares/error-handler';
 
 /**
  * start app
@@ -30,6 +31,7 @@ async function startApp(): Promise<void> {
         next();
     });
     app.use(routes);
+    app.use(errorHandler);
     app.listen(port, () => {
         console.log(`App started on port ${port}`);
     });
