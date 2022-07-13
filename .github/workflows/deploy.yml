@@ -17,8 +17,11 @@ jobs:
         with:
           node-version: 16
 
+      - name: Setup Typescript
+        run: npm install -g typescript
+
       - name: Build
-        run: npx tsc
+        run: tsc
 
       - name: Make zip file
         run: zip -qq -r ./$GITHUB_SHA.zip ./build/**/* appspec.yml deploy.sh
