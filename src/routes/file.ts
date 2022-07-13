@@ -1,9 +1,11 @@
 import express from 'express';
 import auth from '../middlewares/auth';
+import initializeGoogleApi from '../middlewares/google-drive';
 
 const router = express.Router();
 
 router.use(auth);
+router.use(initializeGoogleApi);
 
 router.post('/', (req, res) => {
     console.log('post:', req.body);
