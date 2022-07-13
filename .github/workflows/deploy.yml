@@ -50,3 +50,49 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime
           --deployment-group-name live
           --s3-location bucket=s3-fillkie-develop,bundleType=zip,key=$GITHUB_SHA.zip
+
+  dev-deploy:
+    if: contains(github.ref, 'develop')
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Setup yarn
+        run: |
+          npm install -g yarn
+
+      - name: Install dependencies
+        run: |
+          yarn
+
+      - name: Setup Typescript
+        run: npm install -g typescript
+
+      - name: Build
+        run: tsc
+
+      - name: Make zip file
+        run: zip -qq -r $GITHUB_SHA.zip build appspec.yml deploy.sh
+        shell: bash
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-region: ap-northeast-2
+
+      - name: Upload to S3
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://s3-fillkie-develop/$GITHUB_SHA.zip
+
+      - name: Code Deploy
+        run: aws deploy create-deployment --application-name fillkie
+          --deployment-config-name CodeDeployDefault.OneAtATime
+          --deployment-group-name dev
+          --s3-location bucket=s3-fillkie-develop,bundleType=zip,key=$GITHUB_SHA.zip
