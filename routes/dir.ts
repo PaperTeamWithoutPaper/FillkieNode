@@ -1,5 +1,9 @@
 import express from 'express';
+import auth from '../middlewares/auth';
+
 const router = express.Router();
+
+router.use(auth);
 
 router.post('/', (req, res) => {
     console.log('post:', req.body);
