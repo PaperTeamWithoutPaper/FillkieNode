@@ -6,7 +6,7 @@ on:
 
 jobs:
   live-deploy:
-    if: contains(github.ref, 'master')
+    if: contains(github.ref, 'main')
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
