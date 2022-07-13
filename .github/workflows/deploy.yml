@@ -2,7 +2,7 @@ name: Build and Deploy Node Application to AWS EC2
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
 
 jobs:
   live-deploy:
