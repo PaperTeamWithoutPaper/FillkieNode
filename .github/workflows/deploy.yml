@@ -32,7 +32,7 @@ jobs:
         run: tsc
 
       - name: Make zip file
-        run: zip -qq -r ./$GITHUB_SHA.zip ./build/**/* appspec.yml deploy.sh
+        run: zip -qq -r $GITHUB_SHA.zip build appspec.yml deploy.sh
         shell: bash
 
       - name: Configure AWS credentials
