@@ -4,16 +4,16 @@ import {Request, Response, NextFunction} from 'express';
  * error handler
  *
  * @param {Error} err error from express
- * @param {Request} req request
+ * @param {Request} _req request
  * @param {Response} res response
- * @param {NextFunction} next next function
+ * @param {NextFunction} _next next function
  */
 export default function handleError(
     err: Error,
-    req: Request,
+    _req: Request,
     res: Response,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    next: NextFunction,
+    _next: NextFunction,
 ) {
     console.error(err);
 

@@ -3,7 +3,7 @@ import {IncomingHttpHeaders} from 'http';
 import jwt, {Jwt, JwtPayload} from 'jsonwebtoken';
 import handleError from './error-handler';
 
-type RequestWithJwt = Request & { jwt: Jwt };
+export type RequestWithJwt = Request & { jwt: Jwt };
 
 /**
  * read token
