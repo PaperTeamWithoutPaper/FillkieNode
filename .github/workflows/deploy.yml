@@ -17,6 +17,14 @@ jobs:
         with:
           node-version: 16
 
+      - name: Setup yarn
+        run: |
+          npm install -g yarn
+
+      - name: Install dependencies
+        run: |
+          yarn
+
       - name: Setup Typescript
         run: npm install -g typescript
 
