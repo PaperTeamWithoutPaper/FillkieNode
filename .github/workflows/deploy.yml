@@ -26,10 +26,12 @@ jobs:
           yarn
 
       - name: Setup Typescript
-        run: npm install -g typescript
+        run: |
+          npm install -g typescript
 
       - name: Build
-        run: tsc
+        run: |
+          tsc
 
       - name: Make zip file
         run: zip -qq -r $GITHUB_SHA.zip build appspec.yml deploy.sh
@@ -72,10 +74,12 @@ jobs:
           yarn
 
       - name: Setup Typescript
-        run: npm install -g typescript
+        run: |
+          npm install -g typescript
 
       - name: Build
-        run: tsc
+        run: |
+          tsc
 
       - name: Make zip file
         run: zip -qq -r $GITHUB_SHA.zip build appspec.yml deploy.sh
