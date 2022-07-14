@@ -13,7 +13,6 @@ export default function handleError(
     req: Request,
     res: Response,
 ) {
-
     console.error(req, err);
     responseError(res, 500);
 }
