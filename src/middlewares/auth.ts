@@ -1,9 +1,11 @@
 import {NextFunction, Request, Response} from 'express';
 import {IncomingHttpHeaders} from 'http';
 import jwt, {Jwt, JwtPayload} from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import {responseError} from '../utils';
 import handleError from './error-handler';
 
-export type RequestWithJwt = Request & { jwt: Jwt };
+export type RequestWithAuth = Request & { jwt: Jwt, userId: mongoose.Types.ObjectId };
 
 /**
  * read token
@@ -18,14 +20,21 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
         return null;
     }
 
+    console.log(token);
+
     const decoded = await new Promise<Jwt | null>((resolve) => {
-        jwt.verify(token, process.env.JWT_SECRET as string, {algorithms: ['HS256'], complete: true}, (err, decoded) => {
-            if (err || decoded === undefined) {
-                resolve(null);
-            } else {
-                resolve(decoded);
-            }
-        });
+        jwt.verify(
+            token.substring('Bearer '.length),
+            process.env.JWT_SECRET as string,
+            {algorithms: ['HS256'],
+                complete: true}, (err, decoded) => {
+                console.log(err, decoded);
+                if (err || decoded === undefined) {
+                    resolve(null);
+                } else {
+                    resolve(decoded);
+                }
+            });
     });
 
     if (decoded === null) {
@@ -33,7 +42,7 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
     }
 
     const payload = (decoded.payload as JwtPayload);
-    const expiration = payload.exp || 0;
+    const expiration = (payload.exp || 0) * 1000;
 
     if (expiration < Date.now()) {
         return null;
@@ -52,17 +61,19 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
 export default function auth(req: Request, res: Response, next: NextFunction) {
     void readTokenFromHeader(req.headers).then((jwt) => {
         if (jwt === null) {
-            res.status(401).json({
-                success: false,
-                code: 401,
-                message: 'Unauthorized',
-            });
-            return;
+            return responseError(res, 401);
         }
 
-        (req as RequestWithJwt).jwt = jwt;
+        if (jwt.payload.sub === undefined) {
+            return handleError(new Error(`Valid jwt, missing field 'sub' of payload`), req, res);
+        }
+
+        const reqWithAuth = req as RequestWithAuth;
+        reqWithAuth.jwt = jwt;
+        reqWithAuth.userId = new mongoose.Types.ObjectId(jwt.payload.sub as string);
+
         next();
     }).catch((error) => {
-        handleError(error as Error, req, res, next);
+        return handleError(error as Error, req, res);
     });
 }
