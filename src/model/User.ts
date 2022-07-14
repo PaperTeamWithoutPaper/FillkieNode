@@ -1,23 +1,24 @@
-import mongoose from 'mongoose';
+import mongoose, {Schema} from 'mongoose';
 
-const userSchema = new mongoose.Schema({
-    email: {
-        required: true,
-        unique: true,
-        type: 'string',
-    },
-    name: {
-        type: 'string',
-    },
-    teams: [{
-        type: 'string',
-    }],
-    accessToken: {
-        type: 'string',
-    },
-    refreshToken: {
-        type: 'string',
-    },
+export interface IUser {
+    _id: mongoose.Types.ObjectId,
+    email: string,
+    name: string,
+    expired: boolean,
+    accessToken: string,
+    refreshToken: string,
+    teams: string[],
+}
+
+const userSchema = new Schema<IUser>({
+    _id: mongoose.Types.ObjectId,
+    email: String,
+    name: String,
+    expired: Boolean,
+    accessToken: String,
+    refreshToken: String,
+    teams: [String],
 });
 
-export default mongoose.model('User', userSchema);
+mongoose.pluralize(null);
+export default mongoose.model('user', userSchema);
