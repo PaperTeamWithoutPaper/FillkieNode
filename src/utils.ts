@@ -21,9 +21,18 @@ export function responseError(res: Response, statusCode: number, message?: strin
         message: message ?? STATUS_CODES[statusCode] as string,
     };
 
-    res
-        .status(statusCode)
-        .json(json);
+    if (typeof res.status !== 'function') {
+        console.error('something wrong', message);
+        res.json({
+            success: false,
+            code: 500,
+            message: 'something wrong',
+        });
+    } else {
+        res
+            .status(statusCode)
+            .json(json);
+    }
 }
 
 

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {NextFunction, Request, Response} from 'express';
 import mongoose from 'mongoose';
 import process from 'process';
 import dotenv from 'dotenv';
@@ -30,7 +30,9 @@ async function startApp(): Promise<void> {
         next();
     });
     app.use(routes);
-    app.use(errorHandler);
+    app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+        errorHandler(err, req, res);
+    });
 
     const port = Number(process.env.PORT || 8080);
     app.listen(port, () => {
