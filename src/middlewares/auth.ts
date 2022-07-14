@@ -41,13 +41,6 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
         return null;
     }
 
-    const payload = (decoded.payload as JwtPayload);
-    const expiration = (payload.exp || 0) * 1000;
-
-    if (expiration < Date.now()) {
-        return null;
-    }
-
     return decoded;
 }
 
