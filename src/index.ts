@@ -15,7 +15,6 @@ async function startApp(): Promise<void> {
     dotenv.config();
 
     const mongoURI = process.env.MONGO_CONNECTION_URI || 'mongodb://localhost:27017/test';
-    const port = Number(process.env.PORT || 8080);
     await mongoose.connect(mongoURI);
 
     const app = express();
@@ -32,6 +31,8 @@ async function startApp(): Promise<void> {
     });
     app.use(routes);
     app.use(errorHandler);
+
+    const port = Number(process.env.PORT || 8080);
     app.listen(port, () => {
         console.log(`App started on port ${port}`);
     });
