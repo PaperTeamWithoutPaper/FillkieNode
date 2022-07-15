@@ -11,7 +11,6 @@ export interface IUser {
 }
 
 const userSchema = new Schema<IUser>({
-    _id: mongoose.Types.ObjectId,
     email: String,
     name: String,
     expired: Boolean,

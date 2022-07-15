@@ -14,7 +14,6 @@ export interface IProject {
 }
 
 const projectSchema = new Schema<IProject>({
-    _id: mongoose.Types.ObjectId,
     name: String,
     expired: Boolean,
     ownerId: mongoose.Types.ObjectId,
