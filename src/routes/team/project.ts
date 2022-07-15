@@ -63,7 +63,12 @@ router.get('/:teamId/project', requireParams({
             success: true,
             code: 200,
             message: STATUS_CODES[200] as string,
-            data: projects,
+            data: projects.map((project) => ({
+                id: project._id,
+                name: project.name,
+                ownerId: project.ownerId,
+                teamId: project.teamId,
+            })),
         };
 
         res
