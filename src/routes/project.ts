@@ -44,4 +44,22 @@ router.post('/:teamId', requireBody(['name']), (req, res) => {
     });
 });
 
+router.get('/:teamId', (req, res) => {
+    const params = req.params as AssertedHeader;
+    const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
+
+    void Project.find({teamId}).then((projects: IProject[]) => {
+        const json = {
+            success: true,
+            code: 200,
+            message: STATUS_CODES[200] as string,
+            data: projects,
+        };
+
+        res
+            .status(200)
+            .json(json);
+    });
+});
+
 export default router;
