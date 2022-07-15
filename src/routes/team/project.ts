@@ -2,12 +2,13 @@ import {ObjectId} from 'bson';
 import express from 'express';
 import {STATUS_CODES} from 'http';
 import mongoose from 'mongoose';
-import auth, {RequestWithAuth} from '../middlewares/auth';
-import handleError from '../middlewares/error-handler';
-import initializeGoogleApi from '../middlewares/google-drive';
-import {AssertedHeader, requireBody} from '../middlewares/requires';
-import Project, {IProject} from '../model/Project';
-import {responseSuccess} from '../utils';
+import auth, {RequestWithAuth} from '../../middlewares/auth';
+import handleError from '../../middlewares/error-handler';
+import initializeGoogleApi from '../../middlewares/google-drive';
+import {AssertedHeader, requireBody, requireParams} from '../../middlewares/requires';
+import Project, {IProject} from '../../model/Project';
+import {responseError, responseSuccess} from '../../utils';
+import {isMongoId} from '../../validators';
 
 const router = express.Router();
 
@@ -32,11 +33,18 @@ function createProject(name: string,
     return project.save();
 }
 
-router.post('/:teamId', requireBody(['name']), (req, res) => {
+router.post('/:teamId/project', requireBody({
+    name: String,
+}), requireParams({
+    teamId: isMongoId,
+}), (req, res) => {
     const body = req.body as AssertedHeader;
+    const params = req.params as AssertedHeader;
+
     const name = body.name;
     const userId = (req as RequestWithAuth).userId;
-    const teamId = mongoose.Types.ObjectId.createFromHexString(body.teamId);
+    const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
+
     void createProject(name, userId, teamId).then(() => {
         responseSuccess(res);
     }).catch((err) => {
@@ -44,7 +52,9 @@ router.post('/:teamId', requireBody(['name']), (req, res) => {
     });
 });
 
-router.get('/:teamId', (req, res) => {
+router.get('/:teamId/project', requireParams({
+    teamId: isMongoId,
+}), (req, res) => {
     const params = req.params as AssertedHeader;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
