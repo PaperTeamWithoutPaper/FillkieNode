@@ -1,11 +1,12 @@
+import {ObjectId} from 'bson';
 import {NextFunction, Request, Response} from 'express';
 import {IncomingHttpHeaders} from 'http';
-import jwt, {Jwt, JwtPayload} from 'jsonwebtoken';
+import jwt, {Jwt} from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import {responseError} from '../utils';
 import handleError from './error-handler';
 
-export type RequestWithAuth = Request & { jwt: Jwt, userId: mongoose.Types.ObjectId };
+export type RequestWithAuth = Request & { jwt: Jwt, userId: ObjectId };
 
 /**
  * read token
@@ -20,15 +21,15 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
         return null;
     }
 
-    console.log(token);
-
     const decoded = await new Promise<Jwt | null>((resolve) => {
         jwt.verify(
             token.substring('Bearer '.length),
             process.env.JWT_SECRET as string,
             {algorithms: ['HS256'],
                 complete: true}, (err, decoded) => {
-                console.log(err, decoded);
+                if (err !== null) {
+                    console.error(err);
+                }
                 if (err || decoded === undefined) {
                     resolve(null);
                 } else {
@@ -63,7 +64,7 @@ export default function auth(req: Request, res: Response, next: NextFunction) {
 
         const reqWithAuth = req as RequestWithAuth;
         reqWithAuth.jwt = jwt;
-        reqWithAuth.userId = new mongoose.Types.ObjectId(jwt.payload.sub as string);
+        reqWithAuth.userId = mongoose.Types.ObjectId.createFromHexString(jwt.payload.sub as string);
 
         next();
     }).catch((error) => {
