@@ -3,6 +3,7 @@ import {responseError} from '../utils';
 
 type HeaderLike = { [key: string]: string | undefined};
 type Name = 'body' | 'params' | 'query' | 'headers';
+export type AssertedHeader = { [key: string]: string };
 
 /**
  * return middleware to check object[name] has fields
