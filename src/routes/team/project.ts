@@ -77,4 +77,35 @@ router.get('/:teamId/project', requireParams({
     });
 });
 
+router.get('/:teamId/project/:projectId', requireParams({
+    teamId: isMongoId,
+    projectId: isMongoId,
+}), (req, res) => {
+    const params = req.params as AssertedHeader;
+    const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
+    const projectId = mongoose.Types.ObjectId.createFromHexString(params.projectId);
+
+    void Project.findOne({teamId, projectId}).then((project: IProject | null) => {
+        if (project === null) {
+            return responseError(res, 404);
+        }
+
+        const json = {
+            success: true,
+            code: 200,
+            message: STATUS_CODES[200] as string,
+            data: {
+                id: project._id,
+                name: project.name,
+                ownerId: project.ownerId,
+                teamId: project.teamId,
+            },
+        };
+
+        res
+            .status(200)
+            .json(json);
+    });
+});
+
 export default router;
