@@ -4,7 +4,7 @@ import {IncomingHttpHeaders} from 'http';
 import jwt, {Jwt} from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import {responseError} from '../utils';
-import handleError from './error-handler';
+import handleError from './error_handler';
 
 export type RequestWithAuth = Request & { jwt: Jwt, userId: ObjectId };
 

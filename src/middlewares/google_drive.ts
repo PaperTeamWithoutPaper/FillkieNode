@@ -2,9 +2,9 @@ import express, {NextFunction, Request, Response} from 'express';
 import {OAuth2Client} from 'google-auth-library';
 // eslint-disable-next-line camelcase
 import {drive_v3, google} from 'googleapis';
-import User, {IUser} from '../model/User';
-import handleError from './error-handler';
-import Project, {IProject} from '../model/Project';
+import User, {IUser} from '../model/user';
+import handleError from './error_handler';
+import Project, {IProject} from '../model/project';
 import {responseError} from '../utils';
 
 // eslint-disable-next-line camelcase
