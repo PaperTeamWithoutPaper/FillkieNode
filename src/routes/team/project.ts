@@ -34,7 +34,7 @@ function createProject(name: string,
     return project.save();
 }
 
-router.post('/:teamId/project', requireBody({
+router.post('/project', requireBody({
     name: String,
 }), requireParams({
     teamId: isMongoId,
@@ -60,7 +60,7 @@ router.post('/:teamId/project', requireBody({
     });
 });
 
-router.get('/:teamId/project', requireParams({
+router.get('/project', requireParams({
     teamId: isMongoId,
 }), (req, res) => {
     const params = req.params as AssertedHeader;
@@ -87,7 +87,7 @@ router.get('/:teamId/project', requireParams({
     }));
 });
 
-router.get('/:teamId/project/:projectId', requireParams({
+router.get('/project/:projectId', requireParams({
     teamId: isMongoId,
     projectId: isMongoId,
 }), (req, res) => {
@@ -120,7 +120,7 @@ router.get('/:teamId/project/:projectId', requireParams({
     });
 });
 
-router.put('/', initializeGoogleApi, (req, res) => {
+router.put('/project/:projectId', initializeGoogleApi, (req, res) => {
     console.log('put:', req.body);
     res.json({
         success: true,
@@ -129,7 +129,7 @@ router.put('/', initializeGoogleApi, (req, res) => {
     });
 });
 
-router.delete('/', initializeGoogleApi, (req, res) => {
+router.delete('/project/:projectId', initializeGoogleApi, (req, res) => {
     console.log('delete:', req.body);
     res.json({
         success: true,
