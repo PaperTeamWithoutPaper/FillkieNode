@@ -59,7 +59,10 @@ export default function auth(req: Request, res: Response, next: NextFunction) {
         }
 
         if (jwt.payload.sub === undefined) {
-            return handleError(new Error(`Valid jwt, missing field 'sub' of payload`), req, res);
+            const error = new Error(
+                `Valid jwt, missing field 'sub' of payload`,
+            );
+            return handleError(error, req, res);
         }
 
         const reqWithAuth = req as RequestWithAuth;

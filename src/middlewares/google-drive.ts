@@ -1,14 +1,17 @@
-/* eslint-disable camelcase */
 import express, {NextFunction, Request, Response} from 'express';
 import {OAuth2Client} from 'google-auth-library';
+// eslint-disable-next-line camelcase
 import {drive_v3, google} from 'googleapis';
 import User, {IUser} from '../model/User';
 import handleError from './error-handler';
 import Project, {IProject} from '../model/Project';
 import {responseError} from '../utils';
 
+// eslint-disable-next-line camelcase
+export type Drive = drive_v3.Drive;
+
 export type RequestWithGoogleDrive = express.Request & {
-    drive: drive_v3.Drive
+    drive: Drive
 }
 
 /**
@@ -38,7 +41,11 @@ export function initializeGoogleApiByUser(user: IUser, req: Request) {
  * @param {NextFunction} next next function
  * @return {void} nothing
  */
-export function initializeGoogleApi(req: Request, res: Response, next: NextFunction) {
+export function initializeGoogleApi(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
     const projectId = req.query.projectId;
 
     if (projectId === undefined) {
@@ -54,11 +61,12 @@ export function initializeGoogleApi(req: Request, res: Response, next: NextFunct
             const user = await User.findById(project.ownerId);
 
             if (user === null) {
-                return handleError(new Error(`User not found for project's ownerId(projectId=${
-                    projectId.toString()
-                }, ownerId=${
-                    project.ownerId.toString()
-                }`), req, res);
+                return handleError(new Error(
+                    `User not found for project's ownerId(projectId=${
+                        projectId.toString()
+                    }, ownerId=${
+                        project.ownerId.toString()
+                    }`), req, res);
             }
 
             initializeGoogleApiByUser(user, req);
