@@ -12,13 +12,33 @@ export type RequestWithGoogleDrive = express.Request & {
 }
 
 /**
+ * initialize google api by user id
+ * @param {IUser} user
+ * @param {Request} req
+ */
+export function initializeGoogleApiByUser(user: IUser, req: Request) {
+    const auth = new OAuth2Client(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.GOOGLE_REDIRECT_URL,
+    );
+
+    auth.setCredentials({
+        access_token: user.google.accessToken,
+        refresh_token: user.google.refreshToken,
+    });
+
+    (req as RequestWithGoogleDrive).drive = google.drive({version: 'v3', auth});
+}
+
+/**
  * initialize google api
  * @param {Request} req request
  * @param {Response} res response
  * @param {NextFunction} next next function
  * @return {void} nothing
  */
-export default function initializeGoogleApi(req: Request, res: Response, next: NextFunction) {
+export function initializeGoogleApi(req: Request, res: Response, next: NextFunction) {
     const projectId = req.query.projectId;
 
     if (projectId === undefined) {
@@ -41,18 +61,7 @@ export default function initializeGoogleApi(req: Request, res: Response, next: N
                 }`), req, res);
             }
 
-            const auth = new OAuth2Client(
-                process.env.GOOGLE_CLIENT_ID,
-                process.env.GOOGLE_CLIENT_SECRET,
-                process.env.GOOGLE_REDIRECT_URL,
-            );
-
-            auth.setCredentials({
-                access_token: user.accessToken,
-                refresh_token: user.refreshToken,
-            });
-
-            (req as RequestWithGoogleDrive).drive = google.drive({version: 'v3', auth});
+            initializeGoogleApiByUser(user, req);
 
             next();
         })
