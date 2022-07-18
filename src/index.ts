@@ -40,4 +40,7 @@ async function startApp(): Promise<void> {
     });
 }
 
-void startApp();
+startApp()
+    .catch((error) => {
+        console.error(error);
+    });

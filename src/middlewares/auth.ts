@@ -53,7 +53,7 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
  * @param {NextFunction} next next function
  */
 export default function auth(req: Request, res: Response, next: NextFunction) {
-    void readTokenFromHeader(req.headers).then((jwt) => {
+    readTokenFromHeader(req.headers).then((jwt) => {
         if (jwt === null) {
             return responseError(res, 401);
         }

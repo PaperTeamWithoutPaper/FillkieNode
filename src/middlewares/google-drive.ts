@@ -45,7 +45,7 @@ export function initializeGoogleApi(req: Request, res: Response, next: NextFunct
         return responseError(res, 400, 'projectId is required');
     }
 
-    void Project.findById(projectId)
+    Project.findById(projectId)
         .then(async (project: IProject | null) => {
             if (project === null) {
                 return responseError(res, 404, 'Project not found');

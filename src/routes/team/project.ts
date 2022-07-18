@@ -4,9 +4,10 @@ import {STATUS_CODES} from 'http';
 import mongoose from 'mongoose';
 import auth, {RequestWithAuth} from '../../middlewares/auth';
 import handleError from '../../middlewares/error-handler';
-import initializeGoogleApi from '../../middlewares/google-drive';
+import {initializeGoogleApi, initializeGoogleApiByUser} from '../../middlewares/google-drive';
 import {AssertedHeader, requireBody, requireParams} from '../../middlewares/requires';
 import Project, {IProject} from '../../model/Project';
+import User from '../../model/User';
 import {responseError, responseSuccess} from '../../utils';
 import {isMongoId} from '../../validators';
 
@@ -45,7 +46,14 @@ router.post('/:teamId/project', requireBody({
     const userId = (req as RequestWithAuth).userId;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    void createProject(name, userId, teamId).then(() => {
+    User.findById(userId).then(async (user) => {
+        if (user === null) {
+            return responseError(res, 404, 'User not found');
+        }
+
+        initializeGoogleApiByUser(user, req);
+
+        await createProject(name, userId, teamId);
         responseSuccess(res);
     }).catch((err) => {
         handleError(err as Error, req, res);
@@ -58,7 +66,7 @@ router.get('/:teamId/project', requireParams({
     const params = req.params as AssertedHeader;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    void Project.find({teamId}).then((projects: IProject[]) => {
+    Project.find({teamId}).then((projects: IProject[]) => {
         const json = {
             success: true,
             code: 200,
@@ -74,7 +82,9 @@ router.get('/:teamId/project', requireParams({
         res
             .status(200)
             .json(json);
-    });
+    }).catch(((error) => {
+        handleError(error as Error, req, res);
+    }));
 });
 
 router.get('/:teamId/project/:projectId', requireParams({
@@ -85,7 +95,7 @@ router.get('/:teamId/project/:projectId', requireParams({
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
     const projectId = mongoose.Types.ObjectId.createFromHexString(params.projectId);
 
-    void Project.findOne({teamId, projectId}).then((project: IProject | null) => {
+    Project.findOne({teamId, projectId}).then((project: IProject | null) => {
         if (project === null) {
             return responseError(res, 404);
         }
@@ -105,6 +115,8 @@ router.get('/:teamId/project/:projectId', requireParams({
         res
             .status(200)
             .json(json);
+    }).catch((error) => {
+        handleError(error as Error, req, res);
     });
 });
 
