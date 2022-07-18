@@ -3,20 +3,18 @@ import mongoose, {Schema} from 'mongoose';
 type ObjectId = mongoose.Types.ObjectId;
 const ObjectId = mongoose.Types.ObjectId;
 
-export interface IProject {
+export interface IGroup {
     _id: ObjectId,
     name: string,
-    expired: boolean,
     ownerId: ObjectId,
     teamId: ObjectId,
 }
 
-const projectSchema = new Schema<IProject>({
+const groupSchema = new Schema<IGroup>({
     name: String,
-    expired: Boolean,
     ownerId: ObjectId,
     teamId: ObjectId,
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('Project', projectSchema);
+export default mongoose.model('Group', groupSchema);
