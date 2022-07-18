@@ -108,4 +108,22 @@ router.get('/:teamId/project/:projectId', requireParams({
     });
 });
 
+router.put('/', initializeGoogleApi, (req, res) => {
+    console.log('put:', req.body);
+    res.json({
+        success: true,
+        code: 200,
+        message: 'success',
+    });
+});
+
+router.delete('/', initializeGoogleApi, (req, res) => {
+    console.log('delete:', req.body);
+    res.json({
+        success: true,
+        code: 200,
+        message: 'success',
+    });
+});
+
 export default router;
