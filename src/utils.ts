@@ -1,5 +1,5 @@
 import {Response} from 'express';
-import {STATUS_CODES} from 'http';
+import {STATUS_CODES as HTTP_STATUS_CODES} from 'http';
 
 export type responseJson = {
     success: boolean,
@@ -8,31 +8,41 @@ export type responseJson = {
     [key: string]: string | number | boolean,
 }
 
+const FILLKIE_STATUS_CODES: typeof HTTP_STATUS_CODES = {
+    1000: 'Google Drive Error',
+};
+
+/**
+ * FILLKIE_STATUS_CODES
+ */
+export class FILLKIE_STATUS_MESSAGES {
+    GOOGLE_DRIVE_ERROR = 1000;
+}
+
 /**
  * response error
  * @param {Response} res
  * @param {number} statusCode
- * @param {string | undefined} message
+ * @param {string?} message
  */
 export function responseError(res: Response, statusCode: number, message?: string) {
+    message = message ?? HTTP_STATUS_CODES[statusCode] ?? FILLKIE_STATUS_CODES[statusCode];
+
+    if (message === undefined) {
+        console.log(`Unknown status code: ${statusCode}`);
+        statusCode = 500;
+        message = 'Internal Server Error';
+    }
+
     const json: responseJson = {
         success: false,
-        code: statusCode,
-        message: message ?? STATUS_CODES[statusCode] as string,
+        code: statusCode in HTTP_STATUS_CODES ? statusCode : 500,
+        message: message,
     };
 
-    if (typeof res.status !== 'function') {
-        console.error('something wrong', message);
-        res.json({
-            success: false,
-            code: 500,
-            message: 'something wrong',
-        });
-    } else {
-        res
-            .status(statusCode)
-            .json(json);
-    }
+    res
+        .status(statusCode)
+        .json(json);
 }
 
 
@@ -46,7 +56,8 @@ export function responseSuccess(res: Response, message?: string) {
     const json: responseJson = {
         success: true,
         code: statusCode,
-        message: message ?? STATUS_CODES[statusCode] as string,
+        // 200 always has message
+        message: message ?? HTTP_STATUS_CODES[statusCode] as string,
     };
 
     res
