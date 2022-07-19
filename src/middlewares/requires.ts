@@ -1,4 +1,4 @@
-import {NextFunction, Request, RequestHandler, Response} from 'express';
+import {NextFunction, Request, Response} from 'express';
 import {responseError} from '../utils';
 
 type Name = 'body' | 'params' | 'query' | 'headers';
