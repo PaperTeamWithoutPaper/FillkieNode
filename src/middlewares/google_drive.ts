@@ -1,14 +1,12 @@
 import express, {NextFunction, Request, Response} from 'express';
 import {OAuth2Client} from 'google-auth-library';
-// eslint-disable-next-line camelcase
-import {drive_v3, google} from 'googleapis';
+import {drive_v3 as DriveV3, google} from 'googleapis';
 import User, {IUser} from '../model/user';
 import handleError from './error_handler';
 import Project, {IProject} from '../model/project';
 import {responseError} from '../utils';
 
-// eslint-disable-next-line camelcase
-export type Drive = drive_v3.Drive;
+export type Drive = DriveV3.Drive;
 
 export type RequestWithGoogleDrive = express.Request & {
     drive: Drive
