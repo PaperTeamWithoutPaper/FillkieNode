@@ -17,4 +17,4 @@ const groupPermissionSchema = new Schema<IGroupPermission>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('GroupPermission', groupPermissionSchema);
+export default mongoose.model('groupPermission', groupPermissionSchema);

@@ -6,6 +6,7 @@ const ObjectId = mongoose.Types.ObjectId;
 export interface IProject {
     _id: ObjectId,
     name: string,
+    dir: string,
     expired: boolean,
     ownerId: ObjectId,
     teamId: ObjectId,
@@ -13,10 +14,11 @@ export interface IProject {
 
 const projectSchema = new Schema<IProject>({
     name: String,
+    dir: String,
     expired: Boolean,
     ownerId: ObjectId,
     teamId: ObjectId,
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('Project', projectSchema);
+export default mongoose.model('project', projectSchema);

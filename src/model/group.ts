@@ -17,4 +17,4 @@ const groupSchema = new Schema<IGroup>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('Group', groupSchema);
+export default mongoose.model('group', groupSchema);

@@ -17,4 +17,4 @@ const groupUserSchema = new Schema<IGroupUser>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('GroupUser', groupUserSchema);
+export default mongoose.model('groupUser', groupUserSchema);

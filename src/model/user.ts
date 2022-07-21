@@ -10,6 +10,7 @@ export interface IUser {
     image: string,
     google: {
         expiryDate: number,
+        rootDir: string,
         accessToken: string,
         refreshToken: string,
     }
@@ -22,6 +23,7 @@ const userSchema = new Schema<IUser>({
     image: String,
     google: {
         expiryDate: Number,
+        rootDir: String,
         accessToken: String,
         refreshToken: String,
     },
@@ -29,4 +31,4 @@ const userSchema = new Schema<IUser>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('User', userSchema);
+export default mongoose.model('user', userSchema);

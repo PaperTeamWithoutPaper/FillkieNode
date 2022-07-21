@@ -17,4 +17,4 @@ const userTeamSchema = new Schema<IUserTeam>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('UserTeam', userTeamSchema);
+export default mongoose.model('userTeam', userTeamSchema);

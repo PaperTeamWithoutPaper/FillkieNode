@@ -17,4 +17,4 @@ const projectPermissionSchema = new Schema<IProjectPermission>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('ProjectPermission', projectPermissionSchema);
+export default mongoose.model('projectPermission', projectPermissionSchema);

@@ -19,4 +19,4 @@ const profileSchema = new Schema<IProfile>({
 });
 
 mongoose.pluralize(null);
-export default mongoose.model('Profile', profileSchema);
+export default mongoose.model('profile', profileSchema);
