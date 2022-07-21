@@ -1,7 +1,10 @@
 import {ObjectId} from 'bson';
 import express from 'express';
+import {GaxiosPromise, GaxiosResponse} from 'gaxios';
+import {drive_v3 as DriveV3} from 'googleapis';
 import {STATUS_CODES} from 'http';
 import mongoose from 'mongoose';
+import GoogleDriveException from '../../exceptions/google_drive_exception';
 import auth, {RequestWithAuth} from '../../middlewares/auth';
 import handleError from '../../middlewares/error_handler';
 import {
@@ -24,28 +27,110 @@ const router = express.Router();
 
 router.use(auth);
 
+type real_create_type = (param: {
+    fields: string,
+    resource: {
+        name: string,
+        title?: string,
+        mimeType: string,
+        parent?: string
+    }
+}) => GaxiosPromise<DriveV3.Schema$File>;
+
+/**
+ * get fillkie folder
+ * @param {IUser} user
+ * @param {Drive} drive
+ */
+async function getFillkieFolder(user: IUser, drive: Drive) {
+    if (user.google.rootDir) {
+        return user.google.rootDir;
+    }
+
+    const fillkieFolder = await (drive.files.create as unknown as real_create_type)({
+        fields: 'id',
+        resource: {
+            'name': 'fillkie',
+            'title': 'title of fillkie',
+            'mimeType': 'application/vnd.google-apps.folder',
+        },
+    });
+
+    if (fillkieFolder.data.id === undefined) {
+        throw new GoogleDriveException(fillkieFolder.statusText);
+    }
+
+    user.google.rootDir = fillkieFolder.data.id;
+
+    await User.updateOne({
+        _id: user._id,
+    }, {
+        $set: {
+            'google.rootDir': user.google.rootDir,
+        },
+    });
+
+    return user.google.rootDir;
+}
+
 /**
  * create project
  * @param {string} name name of the project
- * @param {mongoose.Types.ObjectId} userId user id of the project
+ * @param {IUser} user user id of the project
  * @param {mongoose.Types.ObjectId} teamId team id of the project
- * @return {Promise<IProject>} project
+ * @param {Drive} drive google drive api
+ * @return {Promise<IProject|null>} project
  */
-function createProject(
+async function createProject(
     name: string,
-    userId: ObjectId,
+    user: IUser,
     teamId: ObjectId,
+    drive: Drive,
 ) {
+    let projectFolder: GaxiosResponse<DriveV3.Schema$File>;
+    try {
+        const driveResponse = await drive.files.list({
+            q: `mimeType='application/vnd.google-apps.folder' and 'root' in parents`,
+            fields: 'nextPageToken, files(id, name)',
+        });
+
+        const folderList = driveResponse.data.files;
+
+        if (folderList === undefined) {
+            throw new Error(driveResponse.statusText);
+        }
+
+        const fillkieFolder = await getFillkieFolder(user, drive);
+
+        projectFolder = await (drive.files.create as real_create_type)({
+            fields: 'id',
+            resource: {
+                name,
+                title: 'title of fillkie',
+                mimeType: 'application/vnd.google-apps.folder',
+                parent: fillkieFolder,
+            },
+        });
+
+        if (projectFolder.data.id === undefined) {
+            throw new Error(projectFolder.statusText);
+        }
+    } catch (e) {
+        throw new GoogleDriveException((e as Error).toString());
+    }
+
     const project = new Project({
         name,
-        ownerId: userId,
+        ownerId: user._id,
         teamId,
+        dir: projectFolder.data.id,
         roles: {},
     });
-    return project.save();
+
+    return await project.save();
 }
 
-router.post('/project', requireBody({
+router.post('/:teamId/project', requireBody({
     name: String,
 }), requireParams({
     teamId: isMongoId,
@@ -57,24 +142,31 @@ router.post('/project', requireBody({
     const userId = (req as RequestWithAuth).userId;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    User.findById(userId).then(async (user) => {
+    User.findById(userId).then((user) => {
         if (user === null) {
             return responseError(res, 404, 'User not found');
         }
 
         initializeGoogleApiByUser(user, req);
-        await createProject(
+
+        // TODO: user has team_permission to create project
+
+        createProject(
             name,
-            userId,
+            user,
             teamId,
-        );
-        responseSuccess(res);
-    }).catch((err) => {
-        handleError(err as Error, req, res);
+            (req as RequestWithGoogleDrive).drive,
+        ).then(() => {
+            responseSuccess(res);
+        }).catch((err: Error | GoogleDriveException) => {
+            handleError(err, req, res);
+        });
+    }).catch((err: Error | GoogleDriveException) => {
+        handleError(err, req, res);
     });
 });
 
-router.get('/project', requireParams({
+router.get('/:teamId/project/:projectId', requireParams({
     teamId: isMongoId,
 }), (req, res) => {
     const params = req.params as AssertedHeader;
@@ -101,7 +193,7 @@ router.get('/project', requireParams({
     }));
 });
 
-router.get('/project/:projectId', requireParams({
+router.get('/:teamId/project/:projectId', requireParams({
     teamId: isMongoId,
     projectId: isMongoId,
 }), (req, res) => {
@@ -134,7 +226,7 @@ router.get('/project/:projectId', requireParams({
     });
 });
 
-router.put('/project/:projectId', initializeGoogleApi, (req, res) => {
+router.put('/:teamId/project/:projectId', initializeGoogleApi, (req, res) => {
     console.log('put:', req.body);
     res.json({
         success: true,
@@ -143,7 +235,7 @@ router.put('/project/:projectId', initializeGoogleApi, (req, res) => {
     });
 });
 
-router.delete('/project/:projectId', initializeGoogleApi, (req, res) => {
+router.delete('/:teamId/project/:projectId', initializeGoogleApi, (req, res) => {
     console.log('delete:', req.body);
     res.json({
         success: true,

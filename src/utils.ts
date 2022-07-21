@@ -16,7 +16,7 @@ const FILLKIE_STATUS_CODES: typeof HTTP_STATUS_CODES = {
  * FILLKIE_STATUS_CODES
  */
 export class FILLKIE_STATUS_MESSAGES {
-    GOOGLE_DRIVE_ERROR = 1000;
+    static GOOGLE_DRIVE_ERROR = 1000;
 }
 
 /**
@@ -36,12 +36,12 @@ export function responseError(res: Response, statusCode: number, message?: strin
 
     const json: responseJson = {
         success: false,
-        code: statusCode in HTTP_STATUS_CODES ? statusCode : 500,
+        code: statusCode,
         message: message,
     };
 
     res
-        .status(statusCode)
+        .status(statusCode in HTTP_STATUS_CODES ? statusCode : 500)
         .json(json);
 }
 

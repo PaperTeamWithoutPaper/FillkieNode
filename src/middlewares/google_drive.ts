@@ -9,6 +9,7 @@ import {responseError} from '../utils';
 export type Drive = DriveV3.Drive;
 
 export type RequestWithGoogleDrive = express.Request & {
+    user: IUser,
     drive: Drive
 }
 
