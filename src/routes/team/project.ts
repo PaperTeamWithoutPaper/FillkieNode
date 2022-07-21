@@ -3,20 +3,20 @@ import express from 'express';
 import {STATUS_CODES} from 'http';
 import mongoose from 'mongoose';
 import auth, {RequestWithAuth} from '../../middlewares/auth';
-import handleError from '../../middlewares/error-handler';
+import handleError from '../../middlewares/error_handler';
 import {
     Drive,
     initializeGoogleApi,
     initializeGoogleApiByUser,
     RequestWithGoogleDrive,
-} from '../../middlewares/google-drive';
+} from '../../middlewares/google_drive';
 import {
     AssertedHeader,
     requireBody,
     requireParams,
 } from '../../middlewares/requires';
-import Project, {IProject} from '../../model/Project';
-import User from '../../model/User';
+import Project, {IProject} from '../../model/project';
+import User, {IUser} from '../../model/user';
 import {responseError, responseSuccess} from '../../utils';
 import {isMongoId} from '../../validators';
 

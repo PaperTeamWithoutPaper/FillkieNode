@@ -9,6 +9,6 @@ const router = express.Router();
 router.use('/user', userRouter);
 router.use('/dir', dirRouter);
 router.use('/file', fileRouter);
-router.use('/team/:teamId', teamRouter);
+router.use('/team', teamRouter);
 
 export default router;

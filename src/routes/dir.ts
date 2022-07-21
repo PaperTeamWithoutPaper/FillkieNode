@@ -1,6 +1,6 @@
 import express from 'express';
 import auth from '../middlewares/auth';
-import {initializeGoogleApi} from '../middlewares/google-drive';
+import {initializeGoogleApi} from '../middlewares/google_drive';
 
 const router = express.Router();
 
