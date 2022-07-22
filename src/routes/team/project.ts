@@ -149,7 +149,7 @@ router.post('/:teamId/project', requireBody({
 
         initializeGoogleApiByUser(user, req);
 
-        // TODO: user has team_permission to create project
+        // TODO: user has permission to create project in this team
 
         createProject(
             name,
@@ -185,6 +185,8 @@ router.get('/:teamId/project', requireParams({
             })),
         };
 
+        // TODO: filter projects user has permission to read
+
         res
             .status(200)
             .json(json);
@@ -217,6 +219,8 @@ router.get('/:teamId/project/:projectId', requireParams({
                 teamId: project.teamId,
             },
         };
+
+        // TODO: check user has permission to read this project
 
         res
             .status(200)
