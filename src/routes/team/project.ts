@@ -33,7 +33,7 @@ type real_create_type = (param: {
         name: string,
         title?: string,
         mimeType: string,
-        parent?: string
+        parents?: string[]
     }
 }) => GaxiosPromise<DriveV3.Schema$File>;
 
@@ -108,7 +108,7 @@ async function createProject(
                 name,
                 title: 'title of fillkie',
                 mimeType: 'application/vnd.google-apps.folder',
-                parent: fillkieFolder,
+                parents: [fillkieFolder],
             },
         });
 
