@@ -166,7 +166,7 @@ router.post('/:teamId/project', requireBody({
     });
 });
 
-router.get('/:teamId/project/:projectId', requireParams({
+router.get('/:teamId/project', requireParams({
     teamId: isMongoId,
 }), (req, res) => {
     const params = req.params as AssertedHeader;
