@@ -7,13 +7,17 @@ export interface IProjectPermission {
     _id: ObjectId,
     projectId: ObjectId
     groupId: ObjectId,
-    permissionCode: number,
+    permission: {
+        [key: string] : boolean
+    }
 }
 
 const projectPermissionSchema = new Schema<IProjectPermission>({
     projectId: ObjectId,
     groupId: ObjectId,
-    permissionCode: Number,
+    permission: {
+        key: Boolean,
+    },
 });
 
 mongoose.pluralize(null);
