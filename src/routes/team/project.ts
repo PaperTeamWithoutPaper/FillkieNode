@@ -5,6 +5,7 @@ import {drive_v3 as DriveV3} from 'googleapis';
 import {STATUS_CODES} from 'http';
 import mongoose from 'mongoose';
 import GoogleDriveException from '../../exceptions/google_drive_exception';
+import {asyncHandler} from '../../middlewares/async_handler';
 import auth, {RequestWithAuth} from '../../middlewares/auth';
 import handleError from '../../middlewares/error_handler';
 import {
@@ -134,7 +135,7 @@ router.post('/:teamId/project', requireBody({
     name: String,
 }), requireParams({
     teamId: isMongoId,
-}), (req, res) => {
+}), asyncHandler(async (req, res) => {
     const body = req.body as AssertedHeader;
     const params = req.params as AssertedHeader;
 
@@ -142,93 +143,84 @@ router.post('/:teamId/project', requireBody({
     const userId = (req as RequestWithAuth).userId;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    User.findById(userId).then((user) => {
-        if (user === null) {
-            return responseError(res, 404, 'User not found');
-        }
+    const user = await User.findById(userId);
 
-        initializeGoogleApiByUser(user, req);
+    if (user === null) {
+        return responseError(res, 404, 'User not found');
+    }
 
-        // TODO: user has permission to create project in this team
+    initializeGoogleApiByUser(user, req);
 
-        createProject(
-            name,
-            user,
-            teamId,
-            (req as RequestWithGoogleDrive).drive,
-        ).then(() => {
-            responseSuccess(res);
-        }).catch((err: Error | GoogleDriveException) => {
-            handleError(err, req, res);
-        });
-    }).catch((err: Error | GoogleDriveException) => {
-        handleError(err, req, res);
-    });
-});
+    // TODO: user has permission to create project in this team
+
+    await createProject(
+        name,
+        user,
+        teamId,
+        (req as RequestWithGoogleDrive).drive,
+    );
+
+    responseSuccess(res);
+}));
 
 router.get('/:teamId/project', requireParams({
     teamId: isMongoId,
-}), (req, res) => {
+}), asyncHandler(async (req, res) => {
     const params = req.params as AssertedHeader;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    Project.find({teamId}).then((projects: IProject[]) => {
-        const json = {
-            success: true,
-            code: 200,
-            message: STATUS_CODES[200] as string,
-            data: projects.map((project) => ({
-                id: project._id,
-                name: project.name,
-                ownerId: project.ownerId,
-                teamId: project.teamId,
-            })),
-        };
+    const projects = await Project.find({teamId});
+    const json = {
+        success: true,
+        code: 200,
+        message: STATUS_CODES[200] as string,
+        data: projects.map((project) => ({
+            id: project._id,
+            name: project.name,
+            ownerId: project.ownerId,
+            teamId: project.teamId,
+        })),
+    };
 
-        // TODO: filter projects user has permission to read
+    // TODO: filter projects user has permission to read
 
-        res
-            .status(200)
-            .json(json);
-    }).catch(((error) => {
-        handleError(error as Error, req, res);
-    }));
-});
+    res
+        .status(200)
+        .json(json);
+}));
 
 router.get('/:teamId/project/:projectId', requireParams({
     teamId: isMongoId,
     projectId: isMongoId,
-}), (req, res) => {
+}), asyncHandler(async (req, res) => {
     const params = req.params as AssertedHeader;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
     const projectId = mongoose.Types.ObjectId.createFromHexString(params.projectId);
 
-    Project.findOne({teamId, projectId}).then((project: IProject | null) => {
-        if (project === null) {
-            return responseError(res, 404);
-        }
+    const project = await Project.findOne({teamId, projectId});
 
-        const json = {
-            success: true,
-            code: 200,
-            message: STATUS_CODES[200] as string,
-            data: {
-                id: project._id,
-                name: project.name,
-                ownerId: project.ownerId,
-                teamId: project.teamId,
-            },
-        };
+    if (project === null) {
+        return responseError(res, 404);
+    }
 
-        // TODO: check user has permission to read this project
+    const json = {
+        success: true,
+        code: 200,
+        message: STATUS_CODES[200] as string,
+        data: {
+            id: project._id,
+            name: project.name,
+            ownerId: project.ownerId,
+            teamId: project.teamId,
+        },
+    };
 
-        res
-            .status(200)
-            .json(json);
-    }).catch((error) => {
-        handleError(error as Error, req, res);
-    });
-});
+    // TODO: check user has permission to read this project
+
+    res
+        .status(200)
+        .json(json);
+}));
 
 router.put('/:teamId/project/:projectId', initializeGoogleApi, (req, res) => {
     console.log('put:', req.body);
