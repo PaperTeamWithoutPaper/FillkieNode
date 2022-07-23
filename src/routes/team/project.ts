@@ -134,7 +134,7 @@ router.post('/:teamId/project', requireBody({
     name: String,
 }), requireParams({
     teamId: isMongoId,
-}), async (req, res) => {
+}), (req, res) => {
     const body = req.body as AssertedHeader;
     const params = req.params as AssertedHeader;
 
@@ -142,79 +142,92 @@ router.post('/:teamId/project', requireBody({
     const userId = (req as RequestWithAuth).userId;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    const user = await User.findById(userId);
-    if (user === null) {
-        return responseError(res, 404, 'User not found');
-    }
+    User.findById(userId).then((user) => {
+        if (user === null) {
+            return responseError(res, 404, 'User not found');
+        }
 
-    initializeGoogleApiByUser(user, req);
+        initializeGoogleApiByUser(user, req);
 
-    // TODO: user has permission to create project in this team
+        // TODO: user has permission to create project in this team
 
-    await createProject(
-        name,
-        user,
-        teamId,
-        (req as RequestWithGoogleDrive).drive,
-    );
+        createProject(
+            name,
+            user,
+            teamId,
+            (req as RequestWithGoogleDrive).drive,
+        ).then(() => {
+            responseSuccess(res);
+        }).catch((err: Error | GoogleDriveException) => {
+            handleError(err, req, res);
+        });
+    }).catch((err: Error | GoogleDriveException) => {
+        handleError(err, req, res);
+    });
 });
 
 router.get('/:teamId/project', requireParams({
     teamId: isMongoId,
-}), async (req, res) => {
+}), (req, res) => {
     const params = req.params as AssertedHeader;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
 
-    const projects = await Project.find({teamId});
-    const json = {
-        success: true,
-        code: 200,
-        message: STATUS_CODES[200] as string,
-        data: projects.map((project) => ({
-            id: project._id,
-            name: project.name,
-            ownerId: project.ownerId,
-            teamId: project.teamId,
-        })),
-    };
+    Project.find({teamId}).then((projects: IProject[]) => {
+        const json = {
+            success: true,
+            code: 200,
+            message: STATUS_CODES[200] as string,
+            data: projects.map((project) => ({
+                id: project._id,
+                name: project.name,
+                ownerId: project.ownerId,
+                teamId: project.teamId,
+            })),
+        };
 
-    // TODO: filter projects user has permission to read
+        // TODO: filter projects user has permission to read
 
-    res
-        .status(200)
-        .json(json);
+        res
+            .status(200)
+            .json(json);
+    }).catch(((error) => {
+        handleError(error as Error, req, res);
+    }));
 });
 
 router.get('/:teamId/project/:projectId', requireParams({
     teamId: isMongoId,
     projectId: isMongoId,
-}), async (req, res) => {
+}), (req, res) => {
     const params = req.params as AssertedHeader;
     const teamId = mongoose.Types.ObjectId.createFromHexString(params.teamId);
     const projectId = mongoose.Types.ObjectId.createFromHexString(params.projectId);
 
-    const project = await Project.findOne({teamId, projectId});
-    if (project === null) {
-        return responseError(res, 404);
-    }
+    Project.findOne({teamId, projectId}).then((project: IProject | null) => {
+        if (project === null) {
+            return responseError(res, 404);
+        }
 
-    const json = {
-        success: true,
-        code: 200,
-        message: STATUS_CODES[200] as string,
-        data: {
-            id: project._id,
-            name: project.name,
-            ownerId: project.ownerId,
-            teamId: project.teamId,
-        },
-    };
+        const json = {
+            success: true,
+            code: 200,
+            message: STATUS_CODES[200] as string,
+            data: {
+                id: project._id,
+                name: project.name,
+                ownerId: project.ownerId,
+                teamId: project.teamId,
+            },
+        };
 
-    // TODO: check user has permission to read this project
+        // TODO: check user has permission to read this project
 
-    res
-        .status(200)
-        .json(json);
+        res
+            .status(200)
+            .json(json);
+    }).catch((error) => {
+        handleError(error as Error, req, res);
+    });
 });
 
 router.put('/:teamId/project/:projectId', initializeGoogleApi, (req, res) => {
