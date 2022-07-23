@@ -4,6 +4,7 @@ import {IncomingHttpHeaders} from 'http';
 import jwt, {Jwt} from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import {responseError} from '../utils';
+import {asyncHandler} from './async_handler';
 import handleError from './error_handler';
 
 export type RequestWithAuth = Request & { jwt: Jwt, userId: ObjectId };
@@ -52,25 +53,25 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
  * @param {Response} res response
  * @param {NextFunction} next next function
  */
-export default function auth(req: Request, res: Response, next: NextFunction) {
-    readTokenFromHeader(req.headers).then((jwt) => {
-        if (jwt === null) {
-            return responseError(res, 401);
-        }
+async function auth(req: Request, res: Response, next: NextFunction) {
+    const jwt = await readTokenFromHeader(req.headers);
 
-        if (jwt.payload.sub === undefined) {
-            const error = new Error(
-                `Valid jwt, missing field 'sub' of payload`,
-            );
-            return handleError(error, req, res);
-        }
+    if (jwt === null) {
+        return responseError(res, 401);
+    }
 
-        const reqWithAuth = req as RequestWithAuth;
-        reqWithAuth.jwt = jwt;
-        reqWithAuth.userId = mongoose.Types.ObjectId.createFromHexString(jwt.payload.sub as string);
+    if (jwt.payload.sub === undefined) {
+        const error = new Error(
+            `Valid jwt, missing field 'sub' of payload`,
+        );
+        return handleError(error, req, res);
+    }
 
-        next();
-    }).catch((error) => {
-        return handleError(error as Error, req, res);
-    });
+    const reqWithAuth = req as RequestWithAuth;
+    reqWithAuth.jwt = jwt;
+    reqWithAuth.userId = mongoose.Types.ObjectId.createFromHexString(jwt.payload.sub as string);
+
+    next();
 }
+
+export default asyncHandler(auth);
