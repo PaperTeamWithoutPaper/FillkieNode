@@ -6,6 +6,7 @@ import handleError from './error_handler';
 import Project, {IProject} from '../model/project';
 import {responseError} from '../utils';
 import {GaxiosPromise} from 'gaxios';
+import {ReadStream} from 'fs';
 
 export type Drive = DriveV3.Drive;
 
@@ -19,8 +20,12 @@ export type realCreateType = (param: {
     resource: {
         name: string,
         title?: string,
-        mimeType: string,
+        mimeType?: string,
         parents?: string[]
+    },
+    media?: {
+        mimeType?: string,
+        body: ReadStream | string,
     }
 }) => GaxiosPromise<DriveV3.Schema$File>;
 
@@ -56,7 +61,7 @@ export function initializeGoogleApi(
     res: Response,
     next: NextFunction,
 ) {
-    const projectId = req.query.projectId;
+    const projectId = req.query.projectId ?? (req.body as { projectId?: string }).projectId;
 
     if (projectId === undefined) {
         return responseError(res, 400, 'projectId is required');
