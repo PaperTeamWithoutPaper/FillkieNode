@@ -1,2 +1,5 @@
-# pm2 start index.js --name "fillkie-node" --watch
-# automatically restart the server when source changes
+REPOSITORY=/home/ubuntu/node-app
+cd $REPOSITORY/build
+sudo npx --yes yarn
+cp /home/ubuntu/.env ./.env
+pm2 start ../ecosystem.config.js
