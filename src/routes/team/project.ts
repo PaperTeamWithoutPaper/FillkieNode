@@ -1,17 +1,17 @@
 import {ObjectId} from 'bson';
 import express from 'express';
-import {GaxiosPromise, GaxiosResponse} from 'gaxios';
+import {GaxiosResponse} from 'gaxios';
 import {drive_v3 as DriveV3} from 'googleapis';
 import {STATUS_CODES} from 'http';
 import mongoose from 'mongoose';
 import GoogleDriveException from '../../exceptions/google_drive_exception';
 import {asyncHandler} from '../../middlewares/async_handler';
 import auth, {RequestWithAuth} from '../../middlewares/auth';
-import handleError from '../../middlewares/error_handler';
 import {
     Drive,
     initializeGoogleApi,
     initializeGoogleApiByUser,
+    realCreateType,
     RequestWithGoogleDrive,
 } from '../../middlewares/google_drive';
 import {
@@ -19,7 +19,7 @@ import {
     requireBody,
     requireParams,
 } from '../../middlewares/requires';
-import Project, {IProject} from '../../model/project';
+import Project from '../../model/project';
 import User, {IUser} from '../../model/user';
 import {responseError, responseSuccess} from '../../utils';
 import {isMongoId} from '../../validators';
@@ -27,16 +27,6 @@ import {isMongoId} from '../../validators';
 const router = express.Router();
 
 router.use(auth);
-
-type real_create_type = (param: {
-    fields: string,
-    resource: {
-        name: string,
-        title?: string,
-        mimeType: string,
-        parents?: string[]
-    }
-}) => GaxiosPromise<DriveV3.Schema$File>;
 
 /**
  * get fillkie folder
@@ -48,7 +38,7 @@ async function getFillkieFolder(user: IUser, drive: Drive) {
         return user.google.rootDir;
     }
 
-    const fillkieFolder = await (drive.files.create as unknown as real_create_type)({
+    const fillkieFolder = await (drive.files.create as unknown as realCreateType)({
         fields: 'id',
         resource: {
             'name': 'fillkie',
@@ -92,7 +82,7 @@ async function createProject(
     try {
         const fillkieFolder = await getFillkieFolder(user, drive);
 
-        projectFolder = await (drive.files.create as real_create_type)({
+        projectFolder = await (drive.files.create as realCreateType)({
             fields: 'id',
             resource: {
                 name,

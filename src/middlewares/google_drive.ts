@@ -5,6 +5,7 @@ import User, {IUser} from '../model/user';
 import handleError from './error_handler';
 import Project, {IProject} from '../model/project';
 import {responseError} from '../utils';
+import {GaxiosPromise} from 'gaxios';
 
 export type Drive = DriveV3.Drive;
 
@@ -12,6 +13,16 @@ export type RequestWithGoogleDrive = express.Request & {
     user: IUser,
     drive: Drive
 }
+
+export type realCreateType = (param: {
+    fields: string,
+    resource: {
+        name: string,
+        title?: string,
+        mimeType: string,
+        parents?: string[]
+    }
+}) => GaxiosPromise<DriveV3.Schema$File>;
 
 /**
  * initialize google api by user id
