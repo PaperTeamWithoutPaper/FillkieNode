@@ -50,14 +50,44 @@ router.post('/', requireBody({
     });
 }));
 
-router.get('/', (req, res) => {
-    console.log('get:', req.body);
+router.get('/', requireQuery({
+    projectId: isMongoId,
+    folderId: isGoogleDriveFileId,
+}), initializeGoogleApi, asyncHandler(async (req, res) => {
+    // TODO: check user has permission to read folder in this project
+    // TODO: check folder is in this project
+
+    const drive = (req as RequestWithGoogleDrive).drive;
+    const query = req.query as AssertedHeader;
+    const files = await drive.files.list({
+        q: `'${query.folderId}' in parents`,
+        fields: 'nextPageToken, files(id, name, *)',
+        spaces: 'drive',
+    });
+
+    if (files.data.files === undefined) {
+        return responseError(res, FILLKIE_STATUS_MESSAGES.GOOGLE_DRIVE_ERROR, files.statusText);
+    }
+
     res.json({
         success: true,
         code: 200,
         message: 'success',
+        data: files.data.files.map((file: DriveV3.Schema$File) => {
+            let mimeType = file.mimeType;
+            if (mimeType === undefined) {
+                mimeType = 'unknown';
+            }
+
+            return {
+                key: file.id,
+                name: file.name,
+                type: MIME_TYPE_MAP[mimeType] ?? 1,
+                openURI: file.webViewLink,
+            };
+        }),
     });
-});
+}));
 
 router.put('/', (req, res) => {
     console.log('put:', req.body);
