@@ -76,12 +76,12 @@ export function initializeGoogleApi(
             const user = await User.findById(project.ownerId);
 
             if (user === null) {
-                return handleError(new Error(
-                    `User not found for project's ownerId(projectId=${
-                        projectId.toString()
-                    }, ownerId=${
-                        project.ownerId.toString()
-                    }`), req, res);
+                const message = `User not found for project's ownerId(projectId=${
+                    projectId.toString()
+                }, ownerId=${
+                    project.ownerId.toString()
+                })`;
+                return handleError(new Error(message), req, res);
             }
 
             initializeGoogleApiByUser(user, req);
