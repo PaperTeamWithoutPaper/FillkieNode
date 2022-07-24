@@ -47,14 +47,40 @@ router.post('/', requireBody({
     });
 }));
 
-router.get('/', (req, res) => {
-    console.log('get:', req.body);
-    res.json({
-        success: true,
-        code: 200,
-        message: 'success',
+router.get('/', requireQuery({
+    projectId: isMongoId,
+    fileId: isGoogleDriveFileId,
+}), initializeGoogleApi, asyncHandler(async (req, res) => {
+    // TODO: check parent folder in project folder
+    // TODO: check user has permission to read file
+
+    const drive = (req as RequestWithGoogleDrive).drive;
+    const query = req.query as AssertedHeader;
+    await new Promise<void>((resolve, reject) => {
+        drive.files.get({
+            fileId: query.fileId,
+            alt: 'media',
+        },
+        {
+            'responseType': 'json',
+        }, (err, file) => {
+            if (err) {
+                return reject(new GoogleDriveException(err.message));
+            }
+
+            if (file === null || file === undefined) {
+                return reject(new Error(`drive not throws error but file is null: ${query.fileId}`));
+            }
+
+            res.json({
+                success: true,
+                code: 200,
+                data: file.data,
+                message: 'success',
+            });
+        });
     });
-});
+}));
 
 router.put('/', (req, res) => {
     console.log('put:', req.body);
