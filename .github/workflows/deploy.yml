@@ -81,6 +81,11 @@ jobs:
         run: |
           tsc
 
+      - name: move package file to build
+        run: |
+          mv package.json build
+          mv yarn.lock build
+
       - name: Make zip file
         run: zip -qq -r $GITHUB_SHA.zip build appspec.yml deploy.sh ecosystem.config.js
         shell: bash
