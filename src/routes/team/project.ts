@@ -90,17 +90,6 @@ async function createProject(
 ) {
     let projectFolder: GaxiosResponse<DriveV3.Schema$File>;
     try {
-        const driveResponse = await drive.files.list({
-            q: `mimeType='application/vnd.google-apps.folder' and 'root' in parents`,
-            fields: 'nextPageToken, files(id, name)',
-        });
-
-        const folderList = driveResponse.data.files;
-
-        if (folderList === undefined) {
-            throw new Error(driveResponse.statusText);
-        }
-
         const fillkieFolder = await getFillkieFolder(user, drive);
 
         projectFolder = await (drive.files.create as real_create_type)({
