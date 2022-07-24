@@ -168,6 +168,7 @@ router.get('/:teamId/project', requireParams({
             name: project.name,
             ownerId: project.ownerId,
             teamId: project.teamId,
+            folderId: project.dir,
         })),
     };
 
@@ -201,6 +202,7 @@ router.get('/:teamId/project/:projectId', requireParams({
             name: project.name,
             ownerId: project.ownerId,
             teamId: project.teamId,
+            folderId: project.dir,
         },
     };
 
