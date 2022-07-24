@@ -1,16 +1,48 @@
-import {NextFunction, Request, RequestHandler, Response} from 'express';
+import {NextFunction, Request, Response} from 'express';
 import {responseError} from '../utils';
 
-type HeaderLike = { [key: string]: string | undefined};
 type Name = 'body' | 'params' | 'query' | 'headers';
+export type AssertedHeader = { [key: string]: string };
+type HeaderLike = Partial<AssertedHeader>;
+type Condition =
+    StringConstructor
+    | RegExp
+    | NumberConstructor
+    | BooleanConstructor
+    | boolean
+    | number
+    | string;
+type Conditions = {
+    [key: string]: Condition
+};
 
 /**
- * return middleware to check object[name] has fields
+ * validate value
+ * @param {string} value value to be checked
+ * @param {Condition} condition condition to check
+ * @return {boolean} true if value matches condition
+ */
+function validate(value: string, condition: Condition) {
+    if (condition === String) {
+        return true;
+    } else if (condition instanceof RegExp) {
+        return condition.test(value);
+    } else if (condition === Number) {
+        return !isNaN(Number(value)) && isFinite(Number(value));
+    } else if (condition === Boolean) {
+        return value === 'true' || value === 'false';
+    } else {
+        return value == condition;
+    }
+}
+
+/**
+ * return middleware to validate req[name] has fields
  * @param {string} name name of object
- * @param {string[]} fields array of fields to check
+ * @param {Conditions} conditions conditions to check
  * @return {RequestHandler<any>} middleware to check fields
  */
-function requireFields(name: Name, fields: string[]) {
+function requireFields(name: Name, conditions: Conditions) {
     return (req: Request, res: Response, next: NextFunction) => {
         const object = req[name] as HeaderLike | undefined;
 
@@ -18,49 +50,53 @@ function requireFields(name: Name, fields: string[]) {
             return responseError(res, 400, `${name} is required`);
         }
 
-        const index = fields.findIndex((field) => object[field] === undefined);
-
-        if (index === -1) {
-            next();
-        } else {
-            return responseError(res, 400, `${fields[index]} is required in ${name}`);
+        // eslint-disable-next-line guard-for-in
+        for (const key in conditions) {
+            const value = object[key];
+            if (value === undefined) {
+                return responseError(res, 400, `${key} is required in ${name}`);
+            } else if (!validate(value, conditions[key])) {
+                return responseError(res, 400, `${key} is invalid in ${name}`);
+            }
         }
+
+        next();
     };
 }
 
 
 /**
- * require body has some fields
- * @param { string[] } requirements array of requirements
+ * return middleware to validate req.body has fields
+ * @param { Conditions } conditions conditions to check
  * @return {RequestHandler<any>} middleware to check fields
  */
-export function requireBody(requirements: string[]) {
-    return requireFields('body', requirements);
+export function requireBody(conditions: Conditions) {
+    return requireFields('body', conditions);
 }
 
 /**
- * require params has some fields
- * @param { string[] } requirements array of requirements
+ * return middleware to validate req.params has fields
+ * @param { Conditions } conditions conditions to check
  * @return {RequestHandler<any>} middleware to check fields
  */
-export function requireParam(requirements: string[]) {
-    return requireFields('params', requirements);
+export function requireParams(conditions: Conditions) {
+    return requireFields('params', conditions);
 }
 
 /**
- * require query has some fields
- * @param { string[] } requirements array of requirements
+ * return middleware to validate req.query has fields
+ * @param { Conditions } conditions conditions to check
  * @return {RequestHandler<any>} middleware to check fields
  */
-export function requireQuery(requirements: string[]) {
-    return requireFields('query', requirements);
+export function requireQuery(conditions: Conditions) {
+    return requireFields('query', conditions);
 }
 
 /**
- * require header has some fields
- * @param { string[] } requirements array of requirements
+ * return middleware to validate req.headers has fields
+ * @param { Conditions } conditions conditions to check
  * @return {RequestHandler<any>} middleware to check fields
  */
-export function requireHeader(requirements: string[]) {
-    return requireFields('headers', requirements);
+export function requireHeader(conditions: Conditions) {
+    return requireFields('headers', conditions);
 }
