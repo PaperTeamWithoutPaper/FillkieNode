@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import compression from 'compression';
 import helmet from 'helmet';
 import routes from './routes';
-import errorHandler from './middlewares/error-handler';
+import errorHandler from './middlewares/error_handler';
 
 /**
  * start app
@@ -40,4 +40,7 @@ async function startApp(): Promise<void> {
     });
 }
 
-void startApp();
+startApp()
+    .catch((error) => {
+        console.error(error);
+    });

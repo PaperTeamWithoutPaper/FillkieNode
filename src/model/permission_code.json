@@ -1,0 +1,10 @@
+{
+    "team": {
+        "inviteUser": 0,
+        "createProject": 1,
+        "changeTeamSetting": 2,
+        "changeTeamPermission": 3,
+        "changeRole": 4,
+        "kick": 5
+    }
+}
