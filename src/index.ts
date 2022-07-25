@@ -6,6 +6,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import routes from './routes';
 import errorHandler from './middlewares/error_handler';
+import cors from 'cors';
 
 /**
  * start app
@@ -23,12 +24,7 @@ async function startApp(): Promise<void> {
     app.use(helmet());
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
-    app.use((_req, res, next) => {
-        res.append('Access-Control-Allow-Origin', ['*']);
-        res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTION');
-        res.append('Access-Control-Allow-Headers', 'Content-Type');
-        next();
-    });
+    app.use(cors());
     app.use(routes);
     app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
         errorHandler(err, req, res);
