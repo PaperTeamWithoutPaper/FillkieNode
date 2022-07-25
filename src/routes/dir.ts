@@ -60,7 +60,7 @@ router.get('/', requireQuery({
     const drive = (req as RequestWithGoogleDrive).drive;
     const query = req.query as AssertedHeader;
     const files = await drive.files.list({
-        q: `'${query.folderId}' in parents`,
+        q: `'${query.folderId}' in parents and trashed = false`,
         fields: 'nextPageToken, files(id, name, *)',
         spaces: 'drive',
     });
