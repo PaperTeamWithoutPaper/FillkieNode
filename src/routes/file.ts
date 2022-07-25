@@ -91,13 +91,22 @@ router.put('/', (req, res) => {
     });
 });
 
-router.delete('/', (req, res) => {
-    console.log('delete:', req.body);
+router.delete('/', requireQuery({
+    projectId: isMongoId,
+    fileId: isGoogleDriveFileId,
+}), initializeGoogleApi, asyncHandler(async (req, res) => {
+    const drive = (req as RequestWithGoogleDrive).drive;
+    const query = req.query as AssertedHeader;
+
+    await drive.files.delete({
+        fileId: query.fileId,
+    });
+
     res.json({
         success: true,
         code: 200,
         message: 'success',
     });
-});
+}));
 
 export default router;
