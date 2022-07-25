@@ -1,4 +1,5 @@
 import {Request, Response} from 'express';
+import {GaxiosError} from 'gaxios';
 import GoogleDriveException from '../exceptions/google_drive_exception';
 import {FILLKIE_STATUS_MESSAGES, responseError} from '../utils';
 
@@ -10,11 +11,13 @@ import {FILLKIE_STATUS_MESSAGES, responseError} from '../utils';
  * @param {Response} res response
  */
 export default function handleError(
-    err: (Error | GoogleDriveException) & Partial<{ statusCode: number, expose: boolean }>,
+    err: (Error | GoogleDriveException | GaxiosError) & Partial<{ statusCode: number, expose: boolean }>,
     req: Request,
     res: Response,
 ) {
-    if (err instanceof GoogleDriveException) {
+    if (err instanceof GaxiosError && err?.response?.status) {
+        responseError(res, err.response.status);
+    } else if (err instanceof GoogleDriveException) {
         responseError(res, FILLKIE_STATUS_MESSAGES.GOOGLE_DRIVE_ERROR, err.message);
     } else if (err.statusCode !== undefined && err.expose) {
         responseError(res, err.statusCode);
