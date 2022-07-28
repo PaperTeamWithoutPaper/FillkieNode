@@ -82,14 +82,33 @@ router.get('/', requireQuery({
     });
 }));
 
-router.put('/', (req, res) => {
-    console.log('put:', req.body);
+router.patch('/', requireQuery({
+    projectId: isMongoId,
+    fileId: isGoogleDriveFileId,
+    name: String,
+    beforeParentId: isGoogleDriveFileId,
+    afterParentId: isGoogleDriveFileId,
+}), initializeGoogleApi, asyncHandler(async (req, res) => {
+    // TODO: check user has permission to write file in this project
+    // TODO: check folder(beforeParentId, afterParentId, file is in this project
+    const drive = (req as RequestWithGoogleDrive).drive;
+    const query = req.query as AssertedHeader;
+
+    await drive.files.update({
+        requestBody: {
+            name: query.name,
+        },
+        fileId: query.fileId,
+        addParents: query.afterParentId,
+        removeParents: query.beforeParentId,
+    });
+
     res.json({
         success: true,
         code: 200,
         message: 'success',
     });
-});
+}));
 
 router.delete('/', requireQuery({
     projectId: isMongoId,
