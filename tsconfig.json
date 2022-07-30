@@ -10,7 +10,8 @@
     "resolveJsonModule": true
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "FillkieCore/**/*.json"
   ],
   "exclude": [
     "node_modules",
