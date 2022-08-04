@@ -25,7 +25,7 @@ async function startApp(): Promise<void> {
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
     app.use(cors());
-    app.use(routes);
+    app.use('/node', routes);
     app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
         errorHandler(err, req, res);
     });
