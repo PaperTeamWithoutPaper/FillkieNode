@@ -3,6 +3,7 @@
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.8",
+    "@types/mime-types": "^2.1.1",
     "@types/node": "^18.0.3",
     "bson": "^4.6.5",
     "compression": "^1.7.4",
@@ -13,12 +14,15 @@
     "googleapis": "39",
     "helmet": "^5.1.0",
     "jsonwebtoken": "^8.5.1",
+    "mime-types": "^2.1.35",
     "mongoose": "^6.4.4",
+    "multer": "^1.4.5-lts.1",
     "xmlhttprequest": "^1.8.0",
     "yorkie-js-sdk": "^0.2.10"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",
+    "@types/multer": "^1.4.7",
     "@typescript-eslint/eslint-plugin": "^5.30.6",
     "@typescript-eslint/parser": "^5.30.6",
     "eslint": ">=5.16.0",

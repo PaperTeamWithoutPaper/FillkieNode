@@ -4,7 +4,8 @@ import {drive_v3 as DriveV3, google} from 'googleapis';
 import User, {IUser} from '../model/user';
 import handleError from './error_handler';
 import Project, {IProject} from '../model/project';
-import {responseError} from '../utils';
+import {responseError as originalResponseError} from '../utils';
+import BadRequestException from '../exceptions/bad_request_exception';
 
 export type Drive = DriveV3.Drive;
 
@@ -42,10 +43,28 @@ export function initializeGoogleApiByUser(user: IUser, req: Request) {
  */
 export function initializeGoogleApi(
     req: Request,
-    res: Response,
+    res: Response | undefined,
     next: NextFunction,
 ) {
     const projectId = req.query.projectId ?? (req.body as { projectId?: string }).projectId;
+
+    /**
+     * response error adapter
+     * @param {Response|undefined} res
+     * @param {number} code
+     * @param {string} message
+     */
+    function responseError(res: Response | undefined, code: number, message: string) {
+        if (res === undefined) {
+            if (code === 400) {
+                next(new BadRequestException(message));
+            } else {
+                next(new Error(message));
+            }
+        } else {
+            originalResponseError(res, code, message);
+        }
+    }
 
     if (projectId === undefined) {
         return responseError(res, 400, 'projectId is required');
@@ -65,7 +84,7 @@ export function initializeGoogleApi(
                 }, ownerId=${
                     project.ownerId.toString()
                 })`;
-                return handleError(new Error(message), req, res);
+                return responseError(res, 500, message);
             }
 
             initializeGoogleApiByUser(user, req);
@@ -73,7 +92,7 @@ export function initializeGoogleApi(
             next();
         })
         .catch((error) => {
-            return handleError(error as Error, req, res);
+            return responseError(res, 500, (error as Error).message);
         });
 
     return;
