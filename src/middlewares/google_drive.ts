@@ -26,10 +26,21 @@ export function initializeGoogleApiByUser(user: IUser, req: Request) {
         process.env.GOOGLE_REDIRECT_URL,
     );
 
+    auth.on('tokens', (tokens) => {
+        User.findByIdAndUpdate(user._id, {
+            'google.accessToken': tokens.access_token ?? user.google.accessToken,
+            'google.refreshToken': tokens.refresh_token ?? user.google.refreshToken,
+        }).catch((error) => {
+            console.error('error while saving new token', user._id, error);
+        });
+    });
+
     auth.setCredentials({
         access_token: user.google.accessToken,
         refresh_token: user.google.refreshToken,
     });
+
+    google.options({auth});
 
     (req as RequestWithGoogleDrive).drive = google.drive({version: 'v3', auth});
 }
