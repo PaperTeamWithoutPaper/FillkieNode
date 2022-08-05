@@ -11,7 +11,6 @@ import {
     Drive,
     initializeGoogleApi,
     initializeGoogleApiByUser,
-    realCreateType,
     RequestWithGoogleDrive,
 } from '../../middlewares/google_drive';
 import {
@@ -38,12 +37,11 @@ async function getFillkieFolder(user: IUser, drive: Drive) {
         return user.google.rootDir;
     }
 
-    const fillkieFolder = await (drive.files.create as unknown as realCreateType)({
+    const fillkieFolder = await drive.files.create({
         fields: 'id',
-        resource: {
-            'name': 'fillkie',
-            'title': 'title of fillkie',
-            'mimeType': 'application/vnd.google-apps.folder',
+        requestBody: {
+            name: 'fillkie',
+            mimeType: 'application/vnd.google-apps.folder',
         },
     });
 
@@ -82,11 +80,10 @@ async function createProject(
     try {
         const fillkieFolder = await getFillkieFolder(user, drive);
 
-        projectFolder = await (drive.files.create as realCreateType)({
+        projectFolder = await drive.files.create({
             fields: 'id',
-            resource: {
+            requestBody: {
                 name,
-                title: 'title of fillkie',
                 mimeType: 'application/vnd.google-apps.folder',
                 parents: [fillkieFolder],
             },

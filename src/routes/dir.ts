@@ -3,11 +3,12 @@ import {drive_v3 as DriveV3} from 'googleapis';
 import GoogleDriveException from '../exceptions/google_drive_exception';
 import {asyncHandler} from '../middlewares/async_handler';
 import auth from '../middlewares/auth';
-import {initializeGoogleApi, realCreateType, RequestWithGoogleDrive} from '../middlewares/google_drive';
+import {initializeGoogleApi, RequestWithGoogleDrive} from '../middlewares/google_drive';
 import {AssertedHeader, requireBody, requireQuery} from '../middlewares/requires';
 import MIME_TYPE_MAP from '../mime_type_map';
 import {FILLKIE_STATUS_MESSAGES, responseError} from '../utils';
 import {isGoogleDriveFileId, isMongoId} from '../validators';
+import permissions from '../../FillkieCore/permissions.json';
 
 const router = express.Router();
 
@@ -21,16 +22,17 @@ router.post('/', requireBody({
     // TODO: check parent folder in project folder
     // TODO: check user has permission to create folder in this project
 
+    console.log(permissions.project.postInMeeting);
+
     const body = req.body as AssertedHeader;
     const folderId = body.folderId;
     const drive = (req as RequestWithGoogleDrive).drive;
 
     try {
-        const newFolder = await(drive.files.create as realCreateType)({
+        const newFolder = await drive.files.create({
             fields: 'id',
-            resource: {
+            requestBody: {
                 name: body.name,
-                title: 'title of fillkie',
                 mimeType: 'application/vnd.google-apps.folder',
                 parents: [folderId],
             },
