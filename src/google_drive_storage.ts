@@ -26,7 +26,7 @@ export default class GoogleDriveStorage implements multer.StorageEngine {
         const body = req.body as AssertedHeader;
         req.drive.files.create({
             requestBody: {
-                name: file.originalname,
+                name: decodeURIComponent(file.originalname),
                 parents: [body.folderId],
             },
             media: {
