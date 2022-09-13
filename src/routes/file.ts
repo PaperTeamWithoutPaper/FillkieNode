@@ -5,6 +5,8 @@ import auth from '../middlewares/auth';
 import {initializeGoogleApi, RequestWithGoogleDrive} from '../middlewares/google_drive';
 import {AssertedHeader, requireBody, requireQuery} from '../middlewares/requires';
 import {isGoogleDriveFileId, isMongoId} from '../validators';
+import mime from 'mime-types';
+import {ReadStream} from 'fs';
 
 const router = express.Router();
 
@@ -57,30 +59,28 @@ router.get('/', requireQuery({
 
     const drive = (req as RequestWithGoogleDrive).drive;
     const query = req.query as AssertedHeader;
-    await new Promise<void>((resolve, reject) => {
-        drive.files.get({
-            fileId: query.fileId,
-            alt: 'media',
-        },
-        {
-            'responseType': 'json',
-        }, (err, file) => {
-            if (err) {
-                return reject(new GoogleDriveException(err.message));
-            }
 
-            if (file === null || file === undefined) {
-                return reject(new Error(`drive not throws error but file is null: ${query.fileId}`));
-            }
+    const fileHeader = await drive.files.get({
+        fileId: query.fileId,
+        fields: '*',
+    }).then((file) => file.data);
 
-            res.json({
-                success: true,
-                code: 200,
-                data: file.data,
-                message: 'success',
-            });
-        });
-    });
+    const fileData = await drive.files.get({
+        fileId: query.fileId,
+        alt: 'media',
+        acknowledgeAbuse: true,
+    }, {
+        responseType: 'stream',
+    }).then((file) => file.data as ReadStream);
+
+
+    const filename = fileHeader.name ?? 'sample.json';
+    const mimetype = mime.lookup(filename);
+
+    res.setHeader(`Content-disposition`, `attachment; filename="${filename}"`);
+    res.setHeader('Content-type', mimetype || 'text/plain');
+
+    fileData.pipe(res);
 }));
 
 router.patch('/', requireQuery({
