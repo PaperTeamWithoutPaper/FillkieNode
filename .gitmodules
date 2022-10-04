@@ -1,0 +1,3 @@
+[submodule "FillkieCore"]
+	path = FillkieCore
+	url = https://github.com/PaperTeamWithoutPaper/FillkieCore

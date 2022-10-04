@@ -1,9 +1,13 @@
+import {ObjectId} from 'bson';
 import {NextFunction, Request, Response} from 'express';
 import {IncomingHttpHeaders} from 'http';
-import jwt, {Jwt, JwtPayload} from 'jsonwebtoken';
-import handleError from './error-handler';
+import jwt, {Jwt} from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import {responseError} from '../utils';
+import {asyncHandler} from './async_handler';
+import handleError from './error_handler';
 
-export type RequestWithJwt = Request & { jwt: Jwt };
+export type RequestWithAuth = Request & { jwt: Jwt, userId: ObjectId };
 
 /**
  * read token
@@ -19,23 +23,23 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
     }
 
     const decoded = await new Promise<Jwt | null>((resolve) => {
-        jwt.verify(token, process.env.JWT_SECRET as string, {algorithms: ['HS256'], complete: true}, (err, decoded) => {
-            if (err || decoded === undefined) {
-                resolve(null);
-            } else {
-                resolve(decoded);
-            }
-        });
+        jwt.verify(
+            token.substring('Bearer '.length),
+            process.env.JWT_SECRET as string,
+            {algorithms: ['HS256'],
+                complete: true}, (err, decoded) => {
+                if (err !== null) {
+                    console.error(err);
+                }
+                if (err || decoded === undefined) {
+                    resolve(null);
+                } else {
+                    resolve(decoded);
+                }
+            });
     });
 
     if (decoded === null) {
-        return null;
-    }
-
-    const payload = (decoded.payload as JwtPayload);
-    const expiration = payload.exp || 0;
-
-    if (expiration < Date.now()) {
         return null;
     }
 
@@ -49,20 +53,25 @@ async function readTokenFromHeader(headers: IncomingHttpHeaders) {
  * @param {Response} res response
  * @param {NextFunction} next next function
  */
-export default function auth(req: Request, res: Response, next: NextFunction) {
-    void readTokenFromHeader(req.headers).then((jwt) => {
-        if (jwt === null) {
-            res.status(401).json({
-                success: false,
-                code: 401,
-                message: 'Unauthorized',
-            });
-            return;
-        }
+async function auth(req: Request, res: Response, next: NextFunction) {
+    const jwt = await readTokenFromHeader(req.headers);
 
-        (req as RequestWithJwt).jwt = jwt;
-        next();
-    }).catch((error) => {
-        handleError(error as Error, req, res, next);
-    });
+    if (jwt === null) {
+        return responseError(res, 401);
+    }
+
+    if (jwt.payload.sub === undefined) {
+        const error = new Error(
+            `Valid jwt, missing field 'sub' of payload`,
+        );
+        return handleError(error, req, res);
+    }
+
+    const reqWithAuth = req as RequestWithAuth;
+    reqWithAuth.jwt = jwt;
+    reqWithAuth.userId = mongoose.Types.ObjectId.createFromHexString(jwt.payload.sub as string);
+
+    next();
 }
+
+export default asyncHandler(auth);
