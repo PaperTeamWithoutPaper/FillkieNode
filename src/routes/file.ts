@@ -77,7 +77,17 @@ router.get('/', requireQuery({
     const filename = fileHeader.name ?? 'sample.json';
     const mimetype = mime.lookup(filename);
 
-    res.setHeader(`Content-disposition`, `attachment; filename="${filename}"`);
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent#encoding_for_content-disposition_and_link_headers
+    function encodeRFC5987ValueChars(str: string) {
+        return (
+          encodeURIComponent(str)
+            .replace(/['()]/g, escape)
+            .replace(/\*/g, "%2A")
+            .replace(/%(?:7C|60|5E)/g, unescape)
+        );
+      }
+
+    res.setHeader(`Content-disposition`, `attachment; filename*=UTF-8''${encodeRFC5987ValueChars(filename)}`);
     res.setHeader('Content-type', mimetype || 'text/plain');
 
     fileData.pipe(res);
